@@ -1,4 +1,3 @@
-//+?的说明还没写 错误字符 cd的路径
 #include<iostream>
 #include<algorithm>
 #include<string.h>
