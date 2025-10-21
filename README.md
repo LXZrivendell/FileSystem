@@ -1,73 +1,283 @@
 
-# 1.实验要求
+# Linux文件系统模拟器
 
-1.  设计和实现一个模拟文件系统，要求包括目录、普通文件和文件的存储。。
+## 项目概述
 
-2.  文件系统的目录结构采用类似Linux的树状结构。
+这是一个基于C++实现的Linux文件系统模拟器，采用树状目录结构，支持多用户权限管理，提供完整的文件和目录操作功能。系统完全运行在内存中，支持数据持久化存储。
 
-3.  要求模拟的操作包括：
+## 已实现功能
 
--   目录的添加、删除、重命名；
+### 核心文件系统功能
+- ✅ **目录操作**
+  - 创建目录 (`mkdir`)
+  - 删除目录 (`rm -d`)
+  - 重命名目录 (`rename -d`)
+  - 目录导航 (`cd`)
+  - 目录列表显示 (`ls`)
+  - 目录复制/移动 (`cp -d/-cd`)
 
--   目录的显示（列表）；
+- ✅ **文件操作**
+  - 创建文件 (`touch`)
+  - 删除文件 (`rm -f`)
+  - 重命名文件 (`rename -f`)
+  - 文件编辑 (`gedit`)
+  - 文件复制/移动 (`cp -f/-cf`)
 
--   文件的添加、删除、重命名；
+- ✅ **用户管理**
+  - 多用户支持
+  - 用户登录验证
+  - 用户切换 (`su`)
+  - 文件权限控制（所有者权限）
 
--   文件和目录的拷贝；
+- ✅ **系统功能**
+  - 帮助系统 (`help`, `命令?`)
+  - 屏幕清理 (`clear`)
+  - 数据持久化存储
+  - 路径解析（绝对路径和相对路径）
 
--   文件的读写操作。
+## 快速开始
 
-1.  用户进入时显示可用命令列表；用户输入help时显示所有命令的帮助文档；
-    输入某个命令+？时显示该条命令的使用说明。
+### 编译运行
+```bash
+# 编译项目
+./build.sh
 
-2.  用户输入exit时退出该系统。
+# 运行文件系统
+./filesystem
+```
 
-3.  实验实现基于LINUX平台。
+### 默认用户账户
+系统预置了以下测试用户：
+- 用户名: `lxz`, 密码: `test`
+- 用户名: `lf`, 密码: `123`
 
-4.  实验开发语言必须选用C/C++，不能选用JAVA。
+## 详细测试指南
 
-# 2.实验环境
+### 1. 基础登录测试
+```bash
+# 启动系统后，使用预置用户登录
+用户名: lxz
+密码: test
 
--   调试环境：
+# 成功登录后会看到提示符：
+lxz@lxz-FileSystem:~$ 
+```
 
--   操作系统：Ubuntu 16.04 TLS；
+### 2. 帮助系统测试
+```bash
+# 查看所有可用命令
+help
 
--   内存：3.5GiB
+# 查看特定命令的详细说明
+cd?
+ls?
+mkdir?
+```
 
--   处理器：AMD E-350 Processor×2
+### 3. 目录操作测试
+```bash
+# 创建目录
+mkdir testdir
+mkdir documents
+mkdir projects
 
--   图形：AMD PALM（DRM 2.50.0/4.15.0-45-generic,LLVM 6.6.6）
+# 查看当前目录内容
+ls
 
--   操作系统类型：64位
+# 进入目录
+cd testdir
 
--   磁盘：30.4GB
+# 查看当前路径
+cd
 
--   开发环境：
+# 返回上级目录
+cd ..
 
-    -   开发工具：Visual Studio 2017；
+# 使用绝对路径
+cd ~/documents
 
-    -   操作系统：Windows 10 家庭中文版；
+# 使用相对路径
+cd ../projects
+```
 
-    -   处理器：Inter(R) Core(TM) i7-8565u CPU \@ 1.8GHz 1.99 GHz；
+### 4. 文件操作测试
+```bash
+# 创建文件
+touch readme.txt
+touch config.conf
 
-    -   内存：8.00 GB；
+# 查看文件列表
+ls
 
-    -   系统类型：64位操作系统，基于x64的处理器。
+# 编辑文件（会打开gedit编辑器）
+gedit readme.txt
+# 在编辑器中输入一些内容，保存并关闭
 
-# 3.实验设计
+# 再次编辑查看内容是否保存
+gedit readme.txt
+```
 
-## 3.1系统流程
+### 5. 复制和移动测试
+```bash
+# 创建测试环境
+mkdir source
+mkdir dest
+cd source
+touch file1.txt
+touch file2.txt
+mkdir subdir
 
-整体系统操作模拟Ubuntu命令行，具体流程如下：
+# 复制文件
+cp -f file1.txt ~/dest
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20201016112506877.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDMxODE5Mg==,size_16,color_FFFFFF,t_70#pic_center)
+# 复制目录
+cp -d subdir ~/dest
+
+# 移动文件（剪切）
+cp -cf file2.txt ~/dest
+
+# 移动目录（剪切）
+mkdir another_dir
+cp -cd another_dir ~/dest
+
+# 验证复制结果
+cd ~/dest
+ls
+```
+
+### 6. 重命名测试
+```bash
+# 重命名文件
+touch oldfile.txt
+rename -f oldfile.txt newfile.txt
+
+# 重命名目录
+mkdir olddir
+rename -d olddir newdir
+
+# 验证重命名结果
+ls
+```
+
+### 7. 删除操作测试
+```bash
+# 删除文件
+touch temp.txt
+rm -f temp.txt
+
+# 删除目录
+mkdir tempdir
+rm -d tempdir
+
+# 验证删除结果
+ls
+```
+
+### 8. 多用户权限测试
+```bash
+# 当前用户创建文件
+touch myfile.txt
+gedit myfile.txt  # 添加一些内容
+
+# 切换用户
+su
+# 使用另一个用户登录，如: lf / 123
+
+# 尝试编辑其他用户的文件
+gedit myfile.txt  # 应该显示权限错误
+
+# 尝试删除其他用户的文件
+rm -f myfile.txt  # 应该显示权限错误
+```
+
+### 9. 路径解析测试
+```bash
+# 创建复杂目录结构
+mkdir -p level1/level2/level3  # 注意：需要逐级创建
+mkdir level1
+cd level1
+mkdir level2
+cd level2
+mkdir level3
+
+# 测试绝对路径
+cd ~/level1/level2/level3
+cd
+
+# 测试相对路径
+cd ../../..
+cd ./level1/level2
+
+# 测试特殊路径
+cd .      # 当前目录
+cd ..     # 上级目录
+```
+
+### 10. 数据持久化测试
+```bash
+# 创建一些文件和目录
+mkdir persistent_test
+cd persistent_test
+touch important_file.txt
+gedit important_file.txt  # 添加重要内容
+
+# 退出系统
+exit
+
+# 重新启动系统
+./filesystem
+
+# 登录后验证数据是否保存
+cd persistent_test
+ls
+gedit important_file.txt  # 检查内容是否保存
+```
+
+### 11. 错误处理测试
+```bash
+# 测试非法文件名
+touch "file with spaces"  # 应该报错
+touch "file/with/slash"   # 应该报错
+
+# 测试不存在的路径
+cd /nonexistent/path      # 应该报错
+
+# 测试重复创建
+mkdir testdir
+mkdir testdir             # 应该报错
+
+# 测试删除不存在的文件
+rm -f nonexistent.txt     # 应该报错
+```
+
+### 12. 系统功能测试
+```bash
+# 清屏测试
+clear
+
+# 创建新用户测试
+su
+# 输入一个不存在的用户名，如: newuser
+# 选择创建新用户: y
+# 设置密码: newpass123
+```
+
+## 注意事项
+
+1. **文件编辑**: 系统使用gedit作为文本编辑器，需要在图形界面环境下运行
+2. **权限控制**: 只有文件所有者可以编辑、删除、复制自己的文件
+3. **路径格式**: 支持绝对路径（以`~`或`/`开头）和相对路径
+4. **数据保存**: 系统状态保存在`record.dat`文件中，用户信息保存在`user.dat`文件中
+5. **命令格式**: 所有命令都区分大小写，参数之间用空格分隔
+
+## 故障排除
+
+- **编译错误**: 确保系统安装了g++编译器
+- **gedit无法打开**: 确保在图形界面环境下运行，或安装gedit编辑器
+- **权限错误**: 检查是否使用正确的用户身份操作文件
+- **路径错误**: 确认路径格式正确，使用`ls`命令查看可用目录
 
 
-## 3.2文件结构
-
-整体系统采用属性结构组织文件，具体图示如下：
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20201016111224166.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDMxODE5Mg==,size_16,color_FFFFFF,t_70#pic_center)
 
 
 ## 3.3实现的命令
@@ -84,7 +294,7 @@
 | cp     | cp -d\|-f\|-cd\|-cf SOURSE DEST | 从原路径复制一个文件或目录到目的路径下 | \-d：复制目录 -f：复制文件 -cd：复制目录，但不在原路径下保留原目录 -cf：复制文件，但不在原路径下保留原文件 |
 | rename | rename -d\|-f oldname newname   | 更改指定文件或目录的名字               | \-d：重命名目录 -f：重命名文件                                                                             |
 | su     | su                              | 更改当前用户                           | 无                                                                                                         |
-| cls    | cls                             | 清屏                                   | 无                                                                                                         |
+| clear  | clear                           | 清屏                                   | 无                                                                                                         |
 | exit   | exit                            | 退出文件系统                           | 无                                                                                                         |
 | help   | help                            | 显示帮助文档                           | 无                                                                                                         |
 
@@ -922,4 +1132,40 @@ dir* pathTrans(string path) {
 系统实现的多用户权限可以概括为：文件创建者为文件所有者，非文件所有者可以知道该文件的存在，但不能对该文件执行读写、复制、删除等操作。下图展示了非文件所有者不能对文件执行gedit、rm、rename、cp命令的情况：
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/202010221751176.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDMxODE5Mg==,size_16,color_FFFFFF,t_70#pic_center)
+
+---
+
+## 更新日志
+
+### v2.0 (当前版本)
+- ✅ **命令更新**: 将 `cls` 命令更改为 `clear` 命令，更符合Linux标准
+- ✅ **界面优化**: 更新登录界面显示信息
+- ✅ **文档完善**: 添加详细的功能列表和测试指南
+- ✅ **兼容性**: 修复Linux环境下的兼容性问题
+
+### v1.0 (原始版本)
+- ✅ 基础文件系统功能实现
+- ✅ 多用户权限管理
+- ✅ 数据持久化存储
+- ✅ 完整的命令行界面
+
+## 技术特点
+
+- **内存文件系统**: 所有操作在内存中进行，提供快速响应
+- **树状目录结构**: 采用类似Linux的目录组织方式
+- **权限控制**: 实现基于所有者的文件权限管理
+- **数据持久化**: 支持系统状态的保存和恢复
+- **路径解析**: 完整支持绝对路径和相对路径
+- **错误处理**: 完善的错误检查和用户提示
+
+## 开发信息
+
+- **开发语言**: C++
+- **编译器**: g++ (支持C++11及以上)
+- **平台支持**: Linux (推荐Ubuntu)
+- **依赖**: gedit文本编辑器 (用于文件编辑功能)
+
+## 许可证
+
+本项目仅供学习和研究使用。
 
