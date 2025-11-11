@@ -35,6 +35,16 @@
   - 数据持久化存储
   - 路径解析（绝对路径和相对路径）
 
+- ✅ **链接功能**
+  - 软链接 (`ln -s 目标 链接名`)
+  - 硬链接 (`ln -h 目标 链接名`)
+  - 链接完整性检查 (`checklink`)
+
+- ✅ **文件加密**
+  - 透明加密/解密 (`enc -on/-off 文件`)
+  - 用户级密钥管理 (`keyset 密钥`)
+  - 支持 XOR 算法
+
 ## 快速开始
 
 ### 编译运行
@@ -250,7 +260,59 @@ mkdir testdir             # 应该报错
 rm -f nonexistent.txt     # 应该报错
 ```
 
-### 12. 系统功能测试
+### 12. 软/硬链接功能测试
+```bash
+# 创建源文件
+echo "Hello Link" > origin.txt
+
+# 创建软链接
+ln -s origin.txt softlink.txt
+ls -l                     # 可看到 softlink.txt -> origin.txt
+
+# 创建硬链接
+ln -h origin.txt hardlink.txt
+ls -l                     # 链接计数显示 2
+
+# 编辑源文件，链接文件同步变化
+gedit origin.txt          # 修改内容后保存
+gedit softlink.txt        # 内容已同步
+gedit hardlink.txt        # 内容已同步
+
+# 检查链接完整性
+checklink                 # 报告所有链接状态
+
+# 删除源文件后再检查
+rm -f origin.txt
+checklink                 # softlink 被标记为 broken
+```
+
+### 13. 文件加密测试
+```bash
+# 设置用户默认密钥
+keyset 1234
+
+# 创建并编辑明文文件
+touch secret.txt
+gedit secret.txt          # 输入机密内容后保存
+
+# 打开加密开关
+enc -on secret.txt        # 终端打印 [CRYPT] XOR ...
+
+# 此时磁盘内容已变密文，查看内存仍正常
+ls -l                     # secret.txt 后显示 (enc)
+gedit secret.txt          # 透明解密，内容正常
+
+# 关闭加密恢复明文
+enc -off secret.txt       # 终端打印解密日志
+ls -l                     # (enc) 标记消失
+
+# 错误密钥场景演示
+su                        # 切换到另一用户
+keyset wrongkey
+enc -on secret.txt        # 加密后再打开出现乱码
+```
+
+### 14. 系统功能测试
 ```bash
 # 清屏测试
 clear

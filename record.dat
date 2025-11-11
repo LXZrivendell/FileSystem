@@ -1,5 +1,5 @@
 ~
-3
+4
 config.conf
 content
 lf
@@ -16,9 +16,16 @@ readme.txt
 content
 lf
 123
+secret.txt
+i am lf
+content
+lf
+123
 HLINKS
 0
 LINKS
+0
+ENCFILES
 0
 8
 dest
@@ -40,6 +47,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 3
 another_dir
 another_dir
@@ -48,6 +57,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 0
 newdir
 newdir
@@ -55,6 +66,8 @@ newdir
 HLINKS
 0
 LINKS
+0
+ENCFILES
 0
 0
 subdir
@@ -64,6 +77,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 0
 documents
 documents
@@ -71,6 +86,8 @@ documents
 HLINKS
 0
 LINKS
+0
+ENCFILES
 0
 0
 level1
@@ -80,6 +97,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 1
 level2
 level2
@@ -88,6 +107,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 1
 level3
 level3
@@ -95,6 +116,8 @@ level3
 HLINKS
 0
 LINKS
+0
+ENCFILES
 0
 0
 persistent_test
@@ -109,6 +132,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 0
 projects
 projects
@@ -116,6 +141,8 @@ projects
 HLINKS
 0
 LINKS
+0
+ENCFILES
 0
 0
 source
@@ -129,6 +156,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 1
 subdir
 subdir
@@ -137,6 +166,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 0
 testdir
 testdir
@@ -145,6 +176,8 @@ HLINKS
 0
 LINKS
 0
+ENCFILES
+0
 0
 tsetdir
 tsetdir
@@ -152,5 +185,7 @@ tsetdir
 HLINKS
 0
 LINKS
+0
+ENCFILES
 0
 0

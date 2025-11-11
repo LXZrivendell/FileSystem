@@ -18,7 +18,8 @@ void help() {
     su     ---  switch current user \n\
     exit   ---  exit this system \n\
     ln     ---  create link (ln -s TARGET LINKNAME | ln -h TARGET LINKNAME)\n\
-    checklink ---  verify link integrity and counts\n");
+    enc    ---  encrypt management (enc -on name ALG [KEY] | enc -off name)\n\
+    keyset ---  set default encryption key for current user\n");
 }
 
 void help2(string command) {
@@ -35,5 +36,7 @@ void help2(string command) {
     else if (command == "exit?")printf("Exit this system.\n");
     else if (command == "ln?")printf("ln: ln -s TARGET LINKNAME | ln -h TARGET LINKNAME\nCreate a symbolic or hard link.\nTARGET supports absolute(~,/...) and relative path.\nHard link must target a file.\n");
     else if (command == "checklink?")printf("checklink: check hardlink counts and broken symlinks.\n");
+    else if (command == "enc?")printf("enc: enc -on name ALG [KEY] | enc -off name\nALG: XOR | AES(AES is a placeholder here)\n");
+    else if (command == "keyset?")printf("keyset: keyset KEY\nSet default encryption key for current user.\n");
     else printf("Wrong Command!\n");
 }

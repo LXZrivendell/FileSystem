@@ -2,6 +2,7 @@
 #include "fs_state.h"
 #include "fs_types.h"
 #include "fs_path.h"
+#include "fs_keyring.h"
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -49,4 +50,13 @@ void checklink() {
     std::cout << "Symlink check:\n";
     std::cout << "  total symlinks: " << symlink_total << "\n";
     std::cout << "  broken symlinks: " << symlink_broken << "\n";
+}
+
+void keyset(const std::string& key) {
+    if (key.empty()) {
+        std::cout << "Require Parameters\n";
+        return;
+    }
+    keyringSet(curuser.name, key);
+    std::cout << "Key set for user: " << curuser.name << "\n";
 }

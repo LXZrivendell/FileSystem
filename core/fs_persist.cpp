@@ -2,6 +2,7 @@
 #include "fs_state.h"
 #include "fs_types.h"
 #include "fs_path.h"   // 新增：用于路径解析
+#include "fs_keyring.h"    // 新增
 #include <fstream>
 #include <string>
 #include <map>
@@ -78,6 +79,19 @@ void save(dir *tmp) {
     }
 
     // 子目录
+    // 新增：ENCFILES 段（记录目录下加密文件的算法与密钥）
+    int encCount = 0;
+    for (auto &kv : tmp->files) { if (kv.second->encrypted) encCount++; }
+    records.push_back("ENCFILES");
+    records.push_back(to_string(encCount));
+    for (auto &kv : tmp->files) {
+        file* f = kv.second;
+        if (!f->encrypted) continue;
+        records.push_back(kv.first);        // 文件名（目录内入口名）
+        records.push_back(f->enc_algo);     // 算法
+        records.push_back(f->enc_key);      // 密钥
+    }
+
     records.push_back(to_string(tmp->next.size()));
     for (auto it = tmp->next.begin(); it != tmp->next.end(); it++) {
         records.push_back(it->second->name);
@@ -90,31 +104,22 @@ dir* creat(dir *last) {
     tmp->name = records[reco++];
     tmp->pre = last;
 
-    // 文件块数量
     string t = records[reco++];
     for (int i = 0; i < stoi(t); i++) {
         file *tfile = new file();
         tfile->name = records[reco++];
         while (1) {
             string ts = records[reco++];
-            if (ts != "content") {
-                tfile->content.push_back(ts);
-            } else {
-                break;
-            }
+            if (ts != "content") tfile->content.push_back(ts);
+            else break;
         }
         user a;
         a.name = records[reco++];
         a.password = records[reco++];
         tfile->owner = a;
-        tfile->link_count = 1; // 新增：初始计数，稍后重建
+        tfile->link_count = 1;
+        tfile->encrypted = false;  // 默认未加密
         tmp->files[tfile->name] = tfile;
-
-        // 记录绝对路径到文件指针的映射（供硬链接恢复）
-        std::string absPath = absDirPath(tmp) + "/" + tfile->name;
-        // 使用一个简单的全局字典保存路径->文件指针
-        // 我们复用 inodePath 的 string 值空间，不影响存储阶段
-        // 但为了清晰，仍在解析阶段通过 pendingHL 恢复
     }
 
     // 可选：HLINKS 段
@@ -125,13 +130,13 @@ dir* creat(dir *last) {
             PendingHardLink ph;
             ph.base = tmp;
             ph.linkname = records[reco++];
-            ph.target = records[reco++]; // 保存的是绝对路径
+            ph.target = records[reco++];
             pendingHL.push_back(ph);
         }
-        t = records[reco++]; // 继续下一段
+        t = records[reco++];
     }
 
-    // 可选：LINKS 段（兼容旧格式：不存在则跳过）
+    // 可选：LINKS 段
     if (t == "LINKS") {
         string lc = records[reco++];
         for (int i = 0; i < stoi(lc); i++) {
@@ -142,23 +147,39 @@ dir* creat(dir *last) {
             sl->to_dir = (flag == "D");
             tmp->links[sl->name] = sl;
         }
-        t = records[reco++]; // 下一项应为子目录数
+        t = records[reco++];
     }
 
-    // 子目录
+    // 可选：ENCFILES 段
+    if (t == "ENCFILES") {
+        string ec = records[reco++];
+        for (int i = 0; i < stoi(ec); i++) {
+            string fname = records[reco++];
+            string algo  = records[reco++];
+            string key   = records[reco++];
+            auto it = tmp->files.find(fname);
+            if (it != tmp->files.end()) {
+                it->second->enc_algo = algo;
+                it->second->enc_key  = key;
+                it->second->encrypted = true;
+            }
+        }
+        t = records[reco++];
+    }
+
     for (int i = 0; i < stoi(t); i++) {
-        string name = records[reco++];
+        string name;
+        name = records[reco++];
         tmp->next[name] = creat(tmp);
     }
     return tmp;
 }
 
-// 新增：解析挂起的硬链接并重建 link_count
+// 新增：恢复硬链接并重建引用计数
 static void resolveHardLinksAndRecount() {
-    // 恢复硬链接条目（绝对路径）
+    // 恢复目录内挂起的硬链接条目
     for (auto &ph : pendingHL) {
         std::string target = ph.target;
-        // 解析父目录与文件名
         size_t pos = target.find_last_of('/');
         if (pos == std::string::npos) continue;
         std::string dpart = target.substr(0, pos);
@@ -174,11 +195,11 @@ static void resolveHardLinksAndRecount() {
 
     // 重建所有文件的 link_count
     std::map<file*, int> counts;
-    // DFS 统计
     std::vector<dir*> stack;
     stack.push_back(root);
     while (!stack.empty()) {
-        dir* d = stack.back(); stack.pop_back();
+        dir* d = stack.back();
+        stack.pop_back();
         for (auto &kv : d->files) {
             counts[kv.second]++;
         }
@@ -186,7 +207,6 @@ static void resolveHardLinksAndRecount() {
             stack.push_back(kv.second);
         }
     }
-    // 写回计数
     for (auto &kv : counts) {
         kv.first->link_count = kv.second;
     }
@@ -198,22 +218,23 @@ void init() {
     if (!inr) {
         initDir();
     }
-    while (inr >> tmp)
-        records.push_back(tmp);
+    while (inr >> tmp) records.push_back(tmp);
     if (records.size() >= 1) {
         root = curdir = creat(NULL);
-        resolveHardLinksAndRecount();        // 新增：恢复硬链接并重建计数
+        resolveHardLinksAndRecount();        // 现在有定义
     } else {
         initDir();
     }
+    keyringInit();  // 新增：加载密钥环
 }
 
 void exitFS() {
     records.clear();
-    inodePath.clear();   // 新增：清空保存阶段的首见映射
+    inodePath.clear();
     save(root);
     ofstream outr("record.dat");
     for (int i = 0; i < (int)records.size(); i++) {
         outr << records[i] << endl;
     }
+    keyringSave();  // 新增：保存密钥环
 }

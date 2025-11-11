@@ -2,12 +2,14 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
 
 std::vector<std::string> records;
 int reco = 0;
 user curuser;
 dir* curdir = nullptr;
 dir* root = nullptr;
+std::map<std::string, std::string> g_keyring; // 新增
 
 void initDir() {
     curdir = new dir();

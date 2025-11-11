@@ -34,8 +34,9 @@ int main() {
         else if (command == "rename") rename(tmp);
         else if (command == "rm") rm(tmp);
         else if (command == "cp") cp(tmp);
-        else if (command == "ln") ln(tmp);           // 新增：符号/硬链接
-        else if (command == "checklink") checklink(); // 新增：链接完整性检查
+        else if (command == "ln") ln(tmp);
+        else if (command == "enc") enc(tmp);           // 新增：加密管理
+        else if (command == "keyset") keyset(tmp);     // 新增：密钥设置
         else if (command == "clear") clear();
         else if (command == "su") su();
         else if (command == "exit") {

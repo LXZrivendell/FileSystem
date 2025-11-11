@@ -12,7 +12,10 @@ struct file {
     std::string name;
     std::vector<std::string> content;
     user owner;
-    int link_count;  // 新增：硬链接引用计数
+    int link_count;              // 硬链接引用计数
+    bool encrypted;              // 是否加密
+    std::string enc_algo;        // 加密算法：XOR / AES（占位）
+    std::string enc_key;         // 加密密钥（简单字符串）
 };
 
 struct symlink {
